@@ -2,6 +2,7 @@ package com.gestionpedidos.rest.webflux.GestionPedidos.controller;
 
 import com.gestionpedidos.rest.webflux.GestionPedidos.documentos.Producto;
 import com.gestionpedidos.rest.webflux.GestionPedidos.services.ProductoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.print.attribute.standard.Media;
 import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,8 +32,15 @@ public class ProductoController {
                         .body(productoService.findAll())
         );
     }
+    @GetMapping("{id}")
+    public Mono<ResponseEntity<Producto>> verProducto(@PathVariable String id){
+        return productoService.findById(id).map(p-> ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(p)
+        ).defaultIfEmpty(ResponseEntity.notFound().build());
+    }
     @PostMapping
-    public Mono<ResponseEntity<Map<String, Object>>> guardarProducto(@RequestBody Mono<Producto> monoProducto){
+    public Mono<ResponseEntity<Map<String, Object>>> guardarProducto(@Valid @RequestBody Mono<Producto> monoProducto){
         Map<String, Object> respuesta = new HashMap<>();
         return monoProducto.flatMap(producto -> {
             return productoService.save(producto).map(p->{
@@ -57,4 +66,25 @@ public class ProductoController {
                     });
         });
     }
+
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<Producto>> editarProducto(@PathVariable String id, @RequestBody Producto producto){
+        return productoService.findById(id).flatMap(p-> {
+            p.setNombre(producto.getNombre());
+            p.setStock(producto.getStock());
+            p.setPrecio(producto.getPrecio());
+            return productoService.save(p);
+        }).map(p->ResponseEntity.created(URI.create("/api/productos/".concat(p.getId())))
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(p)
+        ).defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<Void>> eliminarProducto(@PathVariable String id){
+        return productoService.findById(id).flatMap(p->{
+            return productoService.delete(p).then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)));
+        }).defaultIfEmpty(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
+    }
+
 }

@@ -1,5 +1,7 @@
 package com.gestionpedidos.rest.webflux.GestionPedidos.documentos;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -7,8 +9,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Producto {
     @Id
     private String id;
+    @NotEmpty
     private String nombre;
-    private int Stock;
+
+    @NotNull
+    private Integer stock;
+    @NotNull
     private Double precio;
 
     public Producto() {
@@ -30,12 +36,12 @@ public class Producto {
         this.nombre = nombre;
     }
 
-    public int getStock() {
-        return Stock;
+    public Integer getStock() {
+        return stock;
     }
 
-    public void setStock(int stock) {
-        Stock = stock;
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 
     public Double getPrecio() {
