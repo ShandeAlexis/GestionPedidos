@@ -1,0 +1,31 @@
+
+services:
+  mongodb-2:
+    image: mongo:latest
+    container_name: mongodb-2
+    ports:
+      - "27010:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: spring_boot2
+    networks:
+      - gestionpedidos-network
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gestionpedidos-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb-2
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb-2:27017/spring_boot2
+    networks:
+      - gestionpedidos-network
+volumes:
+  mongo_data:
+
+networks:
+  gestionpedidos-network:
